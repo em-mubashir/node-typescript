@@ -91,9 +91,17 @@ export class EventsService {
     ```
      */
 
-  async getEventsWithWorkshops() {
-    throw new Error('TODO task 1');
-  }
+    async getEventsWithWorkshops(): Promise<Event[]> {
+     const events = await this.eventRepository.createQueryBuilder('event')
+    .leftJoinAndSelect('event.workshops', 'workshops')
+    .orderBy('event.createdAt', 'DESC')
+    .addOrderBy('workshops.start', 'ASC')
+    .getMany();
+
+  return events;
+    }
+    
+    
 
   /* TODO: complete getFutureEventWithWorkshops so that it returns events with workshops, that have not yet started
     Requirements:
@@ -161,7 +169,18 @@ export class EventsService {
     ]
     ```
      */
-  async getFutureEventWithWorkshops() {
-    throw new Error('TODO task 2');
-  }
+    async getFutureEventWithWorkshops(): Promise<Event[]> {
+      const events = await this.eventRepository
+        .createQueryBuilder('event')
+        .leftJoinAndSelect('event.workshops', 'workshop')
+        .where(`workshop.start = (SELECT MIN(start) FROM workshop WHERE workshop.eventId = event.id AND workshop.start > datetime('now'))`)
+        .orderBy('event.createdAt', 'DESC')
+        .addOrderBy('workshop.start', 'ASC')
+        .getMany();
+    
+      return events;
+    }
+    
+    
+    
 }

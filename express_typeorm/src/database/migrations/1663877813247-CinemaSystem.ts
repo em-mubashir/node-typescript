@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner,Table } from 'typeorm';
 
 export class CinemaSystem1663877813247 implements MigrationInterface {
   /**
@@ -31,8 +31,149 @@ export class CinemaSystem1663877813247 implements MigrationInterface {
    * As a cinema owner I dont want to configure the seating for every show
    */
   public async up(queryRunner: QueryRunner): Promise<void> {
-    throw new Error('TODO: implement migration in task 4');
+   // Movies table
+   // create table: Movie
+   await queryRunner.createTable(
+    new Table({
+      name: 'Movie',
+      columns: [
+        {
+          name: 'id',
+          type: 'int',
+          isPrimary: true,
+          isGenerated: true,
+          generationStrategy: 'increment',
+        },
+        {
+          name: 'name',
+          type: 'varchar',
+          length: '255',
+        },
+        {
+          name: 'description',
+          type: 'text',
+        },
+      ],
+    }),
+  );
+
+  // create table: Showroom
+  await queryRunner.createTable(
+    new Table({
+      name: 'Showroom',
+      columns: [
+        {
+          name: 'id',
+          type: 'int',
+          isPrimary: true,
+          isGenerated: true,
+          generationStrategy: 'increment',
+        },
+        {
+          name: 'name',
+          type: 'varchar',
+          length: '255',
+        },
+      ],
+    }),
+  );
+
+  // create table: Show
+  await queryRunner.createTable(
+    new Table({
+      name: 'Show',
+      columns: [
+        {
+          name: 'id',
+          type: 'int',
+          isPrimary: true,
+          isGenerated: true,
+          generationStrategy: 'increment',
+        },
+        {
+          name: 'startTime',
+          type: 'timestamp',
+          default: 'CURRENT_TIMESTAMP',
+        },
+        {
+          name: 'endTime',
+          type: 'timestamp',
+        },
+        {
+          name: 'price',
+          type: 'decimal',
+          precision: 8,
+          scale: 2,
+        },
+        {
+          name: 'movieId',
+          type: 'int',
+        },
+        {
+          name: 'showroomId',
+          type: 'int',
+        },
+      ],
+      foreignKeys: [
+        {
+          columnNames: ['movieId'],
+          referencedColumnNames: ['id'],
+          referencedTableName: 'Movie',
+          onDelete: 'CASCADE',
+        },
+        {
+          columnNames: ['showroomId'],
+          referencedColumnNames: ['id'],
+          referencedTableName: 'Showroom',
+          onDelete: 'CASCADE',
+        },
+      ],
+    }),
+  );
+
+  // create table: Seat
+  await queryRunner.createTable(
+    new Table({
+      name: 'Seat',
+      columns: [
+        {
+          name: 'id',
+          type: 'int',
+          isPrimary: true,
+          isGenerated: true,
+          generationStrategy: 'increment',
+        },
+        {
+          name: 'number',
+          type: 'int',
+        },
+        {
+          name: 'type',
+          type: 'enum',
+          enum: ['standard', 'vip', 'couple', 'super-vip'],
+          default: "'standard'",
+        },
+        {
+          name: 'showId',
+          type: 'int',
+        },
+      ],
+      foreignKeys: [
+        {
+          columnNames: ['showId'],
+          referencedColumnNames: ['id'],
+          referencedTableName: 'Show',
+          onDelete: 'CASCADE',
+        },
+      ],
+    }),
+  );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.dropTable('Seat');
+    await queryRunner.dropTable('Show');
+    await queryRunner.dropTable('Showroom');
+    await queryRunner.dropTable('Movie');
+  }
 }
